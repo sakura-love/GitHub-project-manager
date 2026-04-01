@@ -131,4 +131,4 @@ python main.py
 
 ## License
 
-MIT（建议在仓库中补充 `LICENSE` 文件）
+MIT（详见仓库根目录 [LICENSE](./LICENSE)）
