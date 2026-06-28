@@ -16,3 +16,11 @@ Thumbs.db
 
 # Local app data (contains user-specific settings)
 .github_project_manager/
+
+# Build artifacts
+build/
+dist/
+*.spec
+*.exe
+version_info.txt
+CHANGELOG_TEMP.md

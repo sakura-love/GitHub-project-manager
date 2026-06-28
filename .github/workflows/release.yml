@@ -1,0 +1,52 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller
+
+      - name: Generate version info
+        run: python scripts/generate_version_info.py
+
+      - name: Build EXE
+        run: |
+          pyinstaller --onefile --windowed `
+            --name "GitHubProjectManager" `
+            --version-file "version_info.txt" `
+            main.py
+
+      - name: Generate changelog
+        run: |
+          $current = "${{ github.ref_name }}"
+          $prev = git describe --tags --abbrev=0 "$current^" 2>$null
+          if ($prev) { $log = git log "$prev..$current" --pretty=format:"- %s (%h)" --no-merges }
+          else { $log = git log --pretty=format:"- %s (%h)" --no-merges }
+          "## $current`n`n$log" | Out-File -Encoding utf8 CHANGELOG_TEMP.md
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          name: "GitHub Project Manager ${{ github.ref_name }}"
+          body_path: CHANGELOG_TEMP.md
+          files: dist/GitHubProjectManager.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
